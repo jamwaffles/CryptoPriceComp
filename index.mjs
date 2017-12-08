@@ -1,11 +1,11 @@
 import 'isomorphic-fetch'
-import dotenv from 'dotenv'
-dotenv.config()
 
 import logger from './server/logger'
 import server from './server'
 
-const port = process.env.PORT
+import config from './server/config'
+
+const port = config('PORT')
 
 if(!port) {
 	logger.error('invalidPortNumber', { port })

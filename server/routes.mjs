@@ -9,6 +9,9 @@ const n = nonceLib()
 import logger from './logger'
 import config from './config'
 
+import { getGdaxExchangeRates } from './providers/gdax'
+import { getPoloniexExchangeRates } from './providers/poloniex'
+
 const mainRouter = new Router({
 	prefix: '',
 })
@@ -16,59 +19,6 @@ const mainRouter = new Router({
 mainRouter.get('/health', async ctx => {
 	ctx.body = "Nothing to see here"
 })
-
-async function getPoloniexTradingFees() {
-	const nonce = n()
-
-	const params = qs.stringify({
-		nonce,
-		command: 'returnFeeInfo',
-	})
-
-	let hash = crypto.createHmac('sha512', config('POLONIEX_API_SECRET'))
-	hash.update(params)
-	const sign = hash.digest('hex')
-	console.log(sign)
-
-	const headers = new Headers({
-		'Content-Type': 'application/x-www-form-urlencoded',
-		Key: config('POLONIEX_API_KEY'),
-		Sign: sign,
-		'User-Agent': 'Crypto Comp',
-	})
-
-	const fullUrl = `https://poloniex.com/tradingApi?${params}`
-
-	logger.debug('poloniexApiRequest', { fullUrl, method: 'POST', headers, body: params })
-
-	const res = await fetch(fullUrl, { method: 'POST', headers, body: params })
-
-	logger.debug('poloniexApiResponse', { status: res.status })
-
-	return await res.json()
-}
-
-async function getGdaxPairs() {
-	const res = await fetch('https://api.gdax.com/products')
-	const products = await res.json()
-
-	logger.info('gdaxProductsList', products)
-
-	let pairs = []
-
-	for(let product of products) {
-		const prod = await fetch(`https://api.gdax.com/products/${product.id}/ticker`)
-		const { price } = await prod.json()
-
-		pairs.push({
-			from: product.base_currency,
-			to: product.quote_currency,
-			price,
-		})
-	}
-
-	return pairs
-}
 
 mainRouter.get('/xmr/gbp', async ctx => {
 	// const pres = await fetch('https://poloniex.com/public?command=returnTicker')
@@ -84,7 +34,12 @@ mainRouter.get('/xmr/gbp', async ctx => {
 	// const pairs = await getGdaxPairs()
 
 	// ctx.body = pairs
-	ctx.body = await getPoloniexTradingFees()
+	// ctx.body = await getPoloniexTradingFees()
+
+	ctx.body = {
+		gdax: await getGdaxExchangeRates(),
+		poloniex: await getPoloniexExchangeRates(),
+	}
 
 	// ctx.body = {
 	// 	xmrToBtc,

@@ -8,3 +8,13 @@ services:
       - PORT=2727
     ports:
       - "2727:2727"
+
+  neo:
+    image: neo4j:3.3
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - "./neo-data:/data"
+    environment:
+      - NEO4J_AUTH=none

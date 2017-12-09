@@ -17,8 +17,6 @@ async function doNeo4jRequest(url, opts) {
 
 	const res = await fetch(url, fetchOpts)
 
-	console.log(res.headers)
-
 	const body = await res.json()
 
 	return { res, body }
@@ -26,12 +24,10 @@ async function doNeo4jRequest(url, opts) {
 
 // nodeData: Object
 export async function createNode(nodeData) {
-	const { res, body } = await doNeo4jRequest('http://localhost:7474/db/data/node', {
+	const { body } = await doNeo4jRequest('http://localhost:7474/db/data/node', {
 		method: 'POST',
 		body: nodeData,
 	})
-
-	console.log(JSON.stringify(body, null, 4))
 
 	logger.debug('neo4jNodeCreated', body)
 
@@ -53,7 +49,7 @@ export async function addLabelToNode(node, labels) {
 }
 
 export async function createRelationship(self, other, options = { data: {}, type: null }) {
-	const { res, body } = await doNeo4jRequest(`${self.self}/relationships`, {
+	const { body } = await doNeo4jRequest(`${self.self}/relationships`, {
 		method: 'POST',
 		body: {
 			to: other.self,

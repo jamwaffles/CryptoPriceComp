@@ -1,13 +1,6 @@
 // @flow
 
 import Router from 'koa-router'
-import crypto from 'crypto'
-import qs from 'querystring'
-import nonceLib from 'nonce'
-const n = nonceLib()
-
-import logger from './logger'
-import config from './config'
 
 import { getGdaxExchangeRates } from './providers/gdax'
 import { getPoloniexExchangeRates } from './providers/poloniex'

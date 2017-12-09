@@ -23,23 +23,7 @@ mainRouter.get('/health', async ctx => {
 })
 
 mainRouter.get('/update', async ctx => {
-	// const pres = await fetch('https://poloniex.com/public?command=returnTicker')
-	// const { BTC_XMR } = await pres.json()
-
-	// const xmrToBtc = parseFloat(BTC_XMR.last)
-
-	// const gdaxRes = await fetch('https://api.gdax.com/products/BTC-GBP/ticker')
-	// const gdax = await gdaxRes.json()
-
-	// const btcToGbp = parseFloat(gdax.price)
-
-	// const pairs = await getGdaxPairs()
-
-	// ctx.body = pairs
-	// ctx.body = await getPoloniexTradingFees()
-
 	const gdaxPairs = await getGdaxExchangeRates()
-	// const poloniexPairs = await getPoloniexExchangeRates()
 
 	const uniqueGdaxCurrencies = gdaxPairs
 		.reduce((carry, pair) => {
@@ -56,7 +40,24 @@ mainRouter.get('/update', async ctx => {
 		.map(currency => neo.createNode({ currency }))
 	)
 
-	ctx.body = gdaxNodes
+	const gdaxEdges = await Promise.all(
+		gdaxPairs
+			.map(pair => {
+				const fromNode = gdaxNodes.find(n => n.data.currency === pair.from)
+				const toNode = gdaxNodes.find(n => n.data.currency === pair.to)
+
+				return neo.createRelationship(
+					fromNode,
+					toNode,
+					{ type: 'exchange', data: { last: pair.price } }
+				)
+			})
+	)
+
+	ctx.body = {
+		gdaxNodes,
+		gdaxEdges,
+	}
 
 
 	// try {

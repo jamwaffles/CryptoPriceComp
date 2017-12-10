@@ -2,6 +2,8 @@
 
 import logger from './logger'
 
+// TODO: Multiple reqs https://neo4j.com/docs/developer-manual/current/http-api/
+
 async function doNeo4jRequest(url, opts) {
 	const fetchOpts = {
 		method: opts.method,
@@ -17,22 +19,52 @@ async function doNeo4jRequest(url, opts) {
 
 	const res = await fetch(url, fetchOpts)
 
-	const body = await res.json()
+	let body = null
+
+	try {
+		body = await res.json()
+	} catch(e) {
+		// Don't care
+	}
 
 	return { res, body }
 }
 
 // nodeData: Object
-export async function createNode(nodeData) {
-	const { body } = await doNeo4jRequest('http://localhost:7474/db/data/node', {
+export async function createNode(nodeData, opts = {}) {
+	const { body: createdBody } = await doNeo4jRequest('http://localhost:7474/db/data/node', {
 		method: 'POST',
 		body: nodeData,
 	})
 
-	logger.debug('neo4jNodeCreated', body)
+	logger.debug('neo4jNodeCreated', createdBody)
 
-	return body
+	if(opts.labels instanceof Array) {
+		const { res } = await doNeo4jRequest(
+			createdBody.labels,
+			{
+				method: 'POST',
+				body: JSON.stringify(opts.labels),
+			}
+		)
+
+		logger.debug('neo4jNodeLabelsAdded', { status: res.status, labels: opts.labels })
+
+		return {
+			...createdBody,
+			metadata: {
+				...createdBody.metadata,
+				labels: opts.labels,
+			},
+		}
+	}
+
+	return createdBody
 }
+
+// export async function findNode() {
+
+// }
 
 // node: NeoNode
 // labels: Array
@@ -60,4 +92,17 @@ export async function createRelationship(self, other, options = { data: {}, type
 	logger.debug('neo4jEdgeCreated', body)
 
 	return body
+}
+
+export async function getShortesPath(self, other, options = {}) {
+	const opts = {
+		to: other.self,
+		max_depth: 10 || options.max_depth,
+		relationships: options.relationships,
+		algorithm: "shortestPath",
+	}
+
+	const { body } = await doNeo4jRequest(`${self.self}/path`, { method: 'POST', body: opts })
+
+	logger.debug('neo4jShortestPath', { body })
 }

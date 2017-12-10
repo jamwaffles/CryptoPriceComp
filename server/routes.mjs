@@ -30,7 +30,7 @@ mainRouter.get('/update', async ctx => {
 		Array.from(
 			uniqueGdaxCurrencies.values()
 		)
-		.map(currency => neo.createNode({ currency }))
+		.map(currency => neo.createNode({ currency }, { labels: [ 'currency' ] }))
 	)
 
 	const gdaxEdges = await Promise.all(
@@ -68,5 +68,12 @@ mainRouter.get('/update', async ctx => {
 
 	// ctx.body = 'noice'
 })
+
+// mainRouter.get('/:from/:to', async ctx => {
+// 	const fromNode =
+// 	const toNode =
+
+// 	const path = await neo.getShortesPath(fromNode, toNode, { relationships: { type: "exchange", "direction": "out" }})
+// })
 
 export default mainRouter

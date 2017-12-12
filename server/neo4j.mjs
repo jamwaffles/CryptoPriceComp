@@ -4,7 +4,7 @@ import logger from './logger'
 
 // TODO: Multiple reqs https://neo4j.com/docs/developer-manual/current/http-api/
 
-async function doNeo4jRequest(url, opts) {
+async function doNeo4jRequest(url, opts = { method: 'GET' }) {
 	const fetchOpts = {
 		method: opts.method,
 		headers: {
@@ -62,9 +62,28 @@ export async function createNode(nodeData, opts = {}) {
 	return createdBody
 }
 
-// export async function findNode() {
+export async function addNodeToIndex(node, { key, value, index }) {
+	const { body } = await doNeo4jRequest(index, {
+		method: 'POST',
+		body: {
+			uri: node.self,
+			key,
+			value,
+		},
+	})
 
-// }
+	return body
+}
+
+export async function searchIndex(index, { key, value }) {
+	const searchUrl = `http://localhost:7474/db/data/index/node/${index}/${key}/${value}`
+
+	logger.debug('neoIndexSearch', { searchUrl, index, key, value })
+
+	const { body } = await doNeo4jRequest(searchUrl)
+
+	return body
+}
 
 // node: NeoNode
 // labels: Array
@@ -94,7 +113,8 @@ export async function createRelationship(self, other, options = { data: {}, type
 	return body
 }
 
-export async function getShortesPath(self, other, options = {}) {
+// TODO: Dijkstra algorithm and cost property
+export async function getShortestPath(self, other, options = {}) {
 	const opts = {
 		to: other.self,
 		max_depth: 10 || options.max_depth,
@@ -105,4 +125,6 @@ export async function getShortesPath(self, other, options = {}) {
 	const { body } = await doNeo4jRequest(`${self.self}/path`, { method: 'POST', body: opts })
 
 	logger.debug('neo4jShortestPath', { body })
+
+	return body
 }

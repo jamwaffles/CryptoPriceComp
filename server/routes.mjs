@@ -2,6 +2,7 @@
 
 import Router from 'koa-router'
 
+import logger from './logger'
 import { getGdaxExchangeRates } from './providers/gdax'
 import { getPoloniexExchangeRates } from './providers/poloniex'
 
@@ -30,7 +31,10 @@ mainRouter.get('/update', async ctx => {
 		Array.from(
 			uniqueGdaxCurrencies.values()
 		)
-		.map(currency => neo.createNode({ currency }, { labels: [ 'currency' ] }))
+		.map(currency =>
+			neo.createNode({ currency }, { labels: [ 'currency' ] })
+				.then(node => neo.addNodeToIndex(node, { key: 'gdax', value: currency, index: 'http://localhost:7474/db/data/index/node/currencies' })
+			))
 	)
 
 	const gdaxEdges = await Promise.all(
@@ -69,11 +73,15 @@ mainRouter.get('/update', async ctx => {
 	// ctx.body = 'noice'
 })
 
-// mainRouter.get('/:from/:to', async ctx => {
-// 	const fromNode =
-// 	const toNode =
+mainRouter.get('/:from/:to', async ctx => {
+	const fromNode = await neo.searchIndex('currencies', { key: 'gdax', value: ctx.params.from.toUpperCase() })
+	const toNode = await neo.searchIndex('currencies', { key: 'gdax', value: ctx.params.to.toUpperCase() })
 
-// 	const path = await neo.getShortesPath(fromNode, toNode, { relationships: { type: "exchange", "direction": "out" }})
-// })
+	logger.debug('pathRequest', { fromNode, toNode })
+
+	const path = await neo.getShortestPath(fromNode[0], toNode[0], { relationships: { type: "exchange", "direction": "out" }})
+
+	ctx.body = path
+})
 
 export default mainRouter

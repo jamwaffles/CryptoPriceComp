@@ -120,7 +120,6 @@ export async function createRelationship(self, other, options = { data: {}, type
 	return body
 }
 
-// TODO: Dijkstra algorithm and cost property
 export async function getShortestPath(self, other, options = {}) {
 	const opts = {
 		to: other.self,

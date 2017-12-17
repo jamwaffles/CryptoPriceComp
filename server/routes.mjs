@@ -55,22 +55,6 @@ mainRouter.get('/update', async ctx => {
 		gdaxNodes,
 		gdaxEdges,
 	}
-
-
-	// try {
-	// 	const xmr = await neo.createNode({ currency: 'XMR' })
-	// 	const btc = await neo.createNode({ currency: 'BTC' })
-	// 	const gbp = await neo.createNode({ currency: 'GBP' })
-
-	// 	await neo.createRelationship(xmr, btc, { type: 'exchange', data: { last: 0.01 } })
-	// 	await neo.createRelationship(btc, gbp, { type: 'exchange', data: { last: 12000.0 } })
-
-	// 	ctx.body = 'noice'
-	// } catch(e) {
-	// 	console.error(e)
-	// }
-
-	// ctx.body = 'noice'
 })
 
 mainRouter.get('/:from/:to', async ctx => {

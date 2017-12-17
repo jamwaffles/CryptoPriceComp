@@ -62,6 +62,13 @@ export async function createNode(nodeData, opts = {}) {
 	return createdBody
 }
 
+// Get a node or relationship
+export async function getItem(nodeUrl) {
+	const { body } = await doNeo4jRequest(nodeUrl)
+
+	return body
+}
+
 export async function addNodeToIndex(node, { key, value, index }) {
 	const { body } = await doNeo4jRequest(index, {
 		method: 'POST',
@@ -119,7 +126,8 @@ export async function getShortestPath(self, other, options = {}) {
 		to: other.self,
 		max_depth: 10 || options.max_depth,
 		relationships: options.relationships,
-		algorithm: "shortestPath",
+		cost_property: options.costProperty,
+		algorithm: "dijkstra",
 	}
 
 	const { body } = await doNeo4jRequest(`${self.self}/path`, { method: 'POST', body: opts })

@@ -32,7 +32,7 @@ mainRouter.get('/update', async ctx => {
 			uniqueGdaxCurrencies.values()
 		)
 		.map(currency =>
-			neo.createNode({ currency }, { labels: [ 'currency' ] })
+			neo.createNode({ currency, source: 'GDAX' }, { labels: [ 'currency', 'gdax' ] })
 				.then(node => neo.addNodeToIndex(node, { key: 'gdax', value: currency, index: 'http://localhost:7474/db/data/index/node/currencies' })
 			))
 	)

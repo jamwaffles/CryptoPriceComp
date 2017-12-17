@@ -79,9 +79,17 @@ mainRouter.get('/:from/:to', async ctx => {
 
 	logger.debug('pathRequest', { fromNode, toNode })
 
-	const path = await neo.getShortestPath(fromNode[0], toNode[0], { relationships: { type: "exchange", "direction": "out" }})
+	const { nodes, relationships } = await neo.getShortestPath(fromNode[0], toNode[0], { relationships: { type: "exchange", "direction": "out" }, costProperty: "last" })
 
-	ctx.body = path
+	const nodeData = (await Promise.all(nodes.map(neo.getItem))).map(item => item.data)
+	const relData = (await Promise.all(relationships.map(neo.getItem))).map(item => item.data)
+
+	const enriched = nodeData.map((node, i) => ({
+		...node,
+		...(relData[i] || {}),
+	}))
+
+	ctx.body = enriched
 })
 
 export default mainRouter
